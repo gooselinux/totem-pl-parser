@@ -1,0 +1,637 @@
+diff -upr totem-pl-parser-2.28.3.old/config.h.in totem-pl-parser-2.28.3/config.h.in
+--- totem-pl-parser-2.28.3.old/config.h.in	2010-05-12 13:30:10.000000000 +0100
++++ totem-pl-parser-2.28.3/config.h.in	2010-06-01 17:15:11.000000000 +0100
+@@ -9,6 +9,9 @@
+ /* Enable additional debugging at the expense of performance and size */
+ #undef GNOME_ENABLE_DEBUG
+ 
++/* Define if libc defines an altzone variable */
++#undef HAVE_ALTZONE
++
+ /* Define to 1 if you have the `asprintf' function. */
+ #undef HAVE_ASPRINTF
+ 
+@@ -24,9 +27,6 @@
+ /* Define if the GNU gettext() function is already present or preinstalled. */
+ #undef HAVE_GETTEXT
+ 
+-/* GMime available in the system */
+-#undef HAVE_GMIME
+-
+ /* Define to 1 if you have the <inttypes.h> header file. */
+ #undef HAVE_INTTYPES_H
+ 
+@@ -57,9 +57,18 @@
+ /* Define to 1 if you have the <sys/types.h> header file. */
+ #undef HAVE_SYS_TYPES_H
+ 
++/* Define if libc defines a timezone variable */
++#undef HAVE_TIMEZONE
++
++/* Define if struct tm has a tm_gmtoff member */
++#undef HAVE_TM_GMTOFF
++
+ /* Define to 1 if you have the <unistd.h> header file. */
+ #undef HAVE_UNISTD_H
+ 
++/* Define if libc defines a _timezone variable */
++#undef HAVE__TIMEZONE
++
+ /* Define to the sub-directory in which libtool stores uninstalled libraries.
+    */
+ #undef LT_OBJDIR
+diff -upr totem-pl-parser-2.28.3.old/configure totem-pl-parser-2.28.3/configure
+--- totem-pl-parser-2.28.3.old/configure	2010-05-12 13:29:46.000000000 +0100
++++ totem-pl-parser-2.28.3/configure	2010-06-01 17:15:11.000000000 +0100
+@@ -777,9 +777,6 @@ TOTEM_PLPARSER_MINI_CFLAGS
+ TOTEM_PLPARSER_LIBS
+ TOTEM_PLPARSER_CFLAGS
+ USEGMIME
+-GMIME
+-GMIME_LIBS
+-GMIME_CFLAGS
+ TOTEM_PL_PARSER_VERSION_MICRO
+ TOTEM_PL_PARSER_VERSION_MINOR
+ TOTEM_PL_PARSER_VERSION_MAJOR
+@@ -957,7 +954,6 @@ with_pic
+ enable_fast_install
+ with_gnu_ld
+ enable_libtool_lock
+-enable_gmime_i_know_what_im_doing
+ enable_debug
+ enable_compile_warnings
+ enable_iso_c
+@@ -981,8 +977,6 @@ CXXFLAGS
+ CCC
+ CXXCPP
+ PKG_CONFIG
+-GMIME_CFLAGS
+-GMIME_LIBS
+ TOTEM_PLPARSER_CFLAGS
+ TOTEM_PLPARSER_LIBS
+ TOTEM_PLPARSER_MINI_CFLAGS
+@@ -1616,9 +1610,6 @@ Optional Features:
+   --enable-fast-install[=PKGS]
+                           optimize for fast installation [default=yes]
+   --disable-libtool-lock  avoid locking (might break parallel builds)
+-  --disable-gmime-i-know-what-im-doing
+-                          Disable libgmime (Unsupported, breaks Podcast
+-                          support).
+   --enable-debug          turn on debugging
+   --enable-compile-warnings=[no/minimum/yes/maximum/error]
+                           Turn on compiler warnings
+@@ -1652,9 +1643,6 @@ Some influential environment variables:
+   CXXFLAGS    C++ compiler flags
+   CXXCPP      C++ preprocessor
+   PKG_CONFIG  path to pkg-config utility
+-  GMIME_CFLAGS
+-              C compiler flags for GMIME, overriding pkg-config
+-  GMIME_LIBS  linker flags for GMIME, overriding pkg-config
+   TOTEM_PLPARSER_CFLAGS
+               C compiler flags for TOTEM_PLPARSER, overriding pkg-config
+   TOTEM_PLPARSER_LIBS
+@@ -6870,13 +6858,13 @@ if test "${lt_cv_nm_interface+set}" = se
+ else
+   lt_cv_nm_interface="BSD nm"
+   echo "int some_variable = 0;" > conftest.$ac_ext
+-  (eval echo "\"\$as_me:6873: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:6861: $ac_compile\"" >&5)
+   (eval "$ac_compile" 2>conftest.err)
+   cat conftest.err >&5
+-  (eval echo "\"\$as_me:6876: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:6864: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
+   cat conftest.err >&5
+-  (eval echo "\"\$as_me:6879: output\"" >&5)
++  (eval echo "\"\$as_me:6867: output\"" >&5)
+   cat conftest.out >&5
+   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
+     lt_cv_nm_interface="MS dumpbin"
+@@ -8081,7 +8069,7 @@ ia64-*-hpux*)
+   ;;
+ *-*-irix6*)
+   # Find out which ABI we are using.
+-  echo '#line 8084 "configure"' > conftest.$ac_ext
++  echo '#line 8072 "configure"' > conftest.$ac_ext
+   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
+   (eval $ac_compile) 2>&5
+   ac_status=$?
+@@ -9870,11 +9858,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:9873: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9861: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>conftest.err)
+    ac_status=$?
+    cat conftest.err >&5
+-   echo "$as_me:9877: \$? = $ac_status" >&5
++   echo "$as_me:9865: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s "$ac_outfile"; then
+      # The compiler can only warn and ignore the option if not recognized
+      # So say no if there are warnings other than the usual output.
+@@ -10209,11 +10197,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:10212: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:10200: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>conftest.err)
+    ac_status=$?
+    cat conftest.err >&5
+-   echo "$as_me:10216: \$? = $ac_status" >&5
++   echo "$as_me:10204: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s "$ac_outfile"; then
+      # The compiler can only warn and ignore the option if not recognized
+      # So say no if there are warnings other than the usual output.
+@@ -10314,11 +10302,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:10317: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:10305: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:10321: \$? = $ac_status" >&5
++   echo "$as_me:10309: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -10369,11 +10357,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:10372: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:10360: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:10376: \$? = $ac_status" >&5
++   echo "$as_me:10364: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -12739,7 +12727,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12742 "configure"
++#line 12730 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -12835,7 +12823,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12838 "configure"
++#line 12826 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -14791,11 +14779,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:14794: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14782: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>conftest.err)
+    ac_status=$?
+    cat conftest.err >&5
+-   echo "$as_me:14798: \$? = $ac_status" >&5
++   echo "$as_me:14786: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s "$ac_outfile"; then
+      # The compiler can only warn and ignore the option if not recognized
+      # So say no if there are warnings other than the usual output.
+@@ -14890,11 +14878,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:14893: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14881: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:14897: \$? = $ac_status" >&5
++   echo "$as_me:14885: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -14942,11 +14930,11 @@ else
+    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
+    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
+    -e 's:$: $lt_compiler_flag:'`
+-   (eval echo "\"\$as_me:14945: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14933: $lt_compile\"" >&5)
+    (eval "$lt_compile" 2>out/conftest.err)
+    ac_status=$?
+    cat out/conftest.err >&5
+-   echo "$as_me:14949: \$? = $ac_status" >&5
++   echo "$as_me:14937: \$? = $ac_status" >&5
+    if (exit $ac_status) && test -s out/conftest2.$ac_objext
+    then
+      # The compiler can only warn and ignore the option if not recognized
+@@ -16154,174 +16142,150 @@ pkg_modules="glib-2.0 >= $GLIB_REQS gtk+
+ ##################################
+ # Checking libgmime dependency
+ ##################################
+-gmime_message=""
++USEGMIME=yes
+ 
+-# Check whether --enable-gmime-i-know-what-im-doing was given.
+-if test "${enable_gmime_i_know_what_im_doing+set}" = set; then :
+-  enableval=$enable_gmime_i_know_what_im_doing; enable_gmime=no
++
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for tm_gmtoff in struct tm" >&5
++$as_echo_n "checking for tm_gmtoff in struct tm... " >&6; }
++if test "${ac_cv_struct_tm_gmtoff+set}" = set; then :
++  $as_echo_n "(cached) " >&6
+ else
+-  enable_gmime=yes
+-fi
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
++		#include <time.h>
+ 
+-if test "x$enable_gmime" = "xyes" ; then
++int
++main ()
++{
+ 
+-pkg_failed=no
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GMIME" >&5
+-$as_echo_n "checking for GMIME... " >&6; }
++		struct tm tm;
++		tm.tm_gmtoff = 1;
++		return tm.tm_gmtoff;
+ 
+-if test -n "$GMIME_CFLAGS"; then
+-    pkg_cv_GMIME_CFLAGS="$GMIME_CFLAGS"
+- elif test -n "$PKG_CONFIG"; then
+-    if test -n "$PKG_CONFIG" && \
+-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gmime-2.4\""; } >&5
+-  ($PKG_CONFIG --exists --print-errors "gmime-2.4") 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; }; then
+-  pkg_cv_GMIME_CFLAGS=`$PKG_CONFIG --cflags "gmime-2.4" 2>/dev/null`
+-else
+-  pkg_failed=yes
+-fi
+- else
+-    pkg_failed=untried
+-fi
+-if test -n "$GMIME_LIBS"; then
+-    pkg_cv_GMIME_LIBS="$GMIME_LIBS"
+- elif test -n "$PKG_CONFIG"; then
+-    if test -n "$PKG_CONFIG" && \
+-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gmime-2.4\""; } >&5
+-  ($PKG_CONFIG --exists --print-errors "gmime-2.4") 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; }; then
+-  pkg_cv_GMIME_LIBS=`$PKG_CONFIG --libs "gmime-2.4" 2>/dev/null`
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  ac_cv_struct_tm_gmtoff="yes"
+ else
+-  pkg_failed=yes
++  ac_cv_struct_tm_gmtoff="no"
+ fi
+- else
+-    pkg_failed=untried
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_tm_gmtoff" >&5
++$as_echo "$ac_cv_struct_tm_gmtoff" >&6; }
++if test "$ac_cv_struct_tm_gmtoff" = "yes"; then
+ 
++$as_echo "#define HAVE_TM_GMTOFF 1" >>confdefs.h
+ 
+-
+-if test $pkg_failed = yes; then
+-
+-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+-        _pkg_short_errors_supported=yes
+ else
+-        _pkg_short_errors_supported=no
+-fi
+-        if test $_pkg_short_errors_supported = yes; then
+-	        GMIME_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gmime-2.4" 2>&1`
+-        else
+-	        GMIME_PKG_ERRORS=`$PKG_CONFIG --print-errors "gmime-2.4" 2>&1`
+-        fi
+-	# Put the nasty error message in config.log where it belongs
+-	echo "$GMIME_PKG_ERRORS" >&5
+-
+-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-                have_gmime=no
+-elif test $pkg_failed = untried; then
+-	have_gmime=no
++	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for timezone variable" >&5
++$as_echo_n "checking for timezone variable... " >&6; }
++if test "${ac_cv_var_timezone+set}" = set; then :
++  $as_echo_n "(cached) " >&6
+ else
+-	GMIME_CFLAGS=$pkg_cv_GMIME_CFLAGS
+-	GMIME_LIBS=$pkg_cv_GMIME_LIBS
+-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+-$as_echo "yes" >&6; }
+-	have_gmime=yes GMIME=gmime-2.4
+-fi
+-   if test "x$have_gmime" != "xyes" ; then
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
+-pkg_failed=no
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GMIME" >&5
+-$as_echo_n "checking for GMIME... " >&6; }
++			#include <time.h>
+ 
+-if test -n "$GMIME_CFLAGS"; then
+-    pkg_cv_GMIME_CFLAGS="$GMIME_CFLAGS"
+- elif test -n "$PKG_CONFIG"; then
+-    if test -n "$PKG_CONFIG" && \
+-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gmime-2.6\""; } >&5
+-  ($PKG_CONFIG --exists --print-errors "gmime-2.6") 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; }; then
+-  pkg_cv_GMIME_CFLAGS=`$PKG_CONFIG --cflags "gmime-2.6" 2>/dev/null`
++int
++main ()
++{
++
++			timezone = 1;
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  ac_cv_var_timezone="yes"
+ else
+-  pkg_failed=yes
++  ac_cv_var_timezone="no"
+ fi
+- else
+-    pkg_failed=untried
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+-if test -n "$GMIME_LIBS"; then
+-    pkg_cv_GMIME_LIBS="$GMIME_LIBS"
+- elif test -n "$PKG_CONFIG"; then
+-    if test -n "$PKG_CONFIG" && \
+-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gmime-2.6\""; } >&5
+-  ($PKG_CONFIG --exists --print-errors "gmime-2.6") 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; }; then
+-  pkg_cv_GMIME_LIBS=`$PKG_CONFIG --libs "gmime-2.6" 2>/dev/null`
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_var_timezone" >&5
++$as_echo "$ac_cv_var_timezone" >&6; }
++	if test "$ac_cv_var_timezone" = "yes"; then
++
++$as_echo "#define HAVE_TIMEZONE 1" >>confdefs.h
++
++		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for altzone variable" >&5
++$as_echo_n "checking for altzone variable... " >&6; }
++if test "${ac_cv_var_altzone+set}" = set; then :
++  $as_echo_n "(cached) " >&6
+ else
+-  pkg_failed=yes
+-fi
+- else
+-    pkg_failed=untried
+-fi
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
++				#include <time.h>
+ 
++int
++main ()
++{
+ 
+-if test $pkg_failed = yes; then
++				altzone = 1;
+ 
+-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+-        _pkg_short_errors_supported=yes
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  ac_cv_var_altzone="yes"
+ else
+-        _pkg_short_errors_supported=no
++  ac_cv_var_altzone="no"
+ fi
+-        if test $_pkg_short_errors_supported = yes; then
+-	        GMIME_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gmime-2.6" 2>&1`
+-        else
+-	        GMIME_PKG_ERRORS=`$PKG_CONFIG --print-errors "gmime-2.6" 2>&1`
+-        fi
+-	# Put the nasty error message in config.log where it belongs
+-	echo "$GMIME_PKG_ERRORS" >&5
+-
+-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-                have_gmime=no
+-elif test $pkg_failed = untried; then
+-	have_gmime=no
+-else
+-	GMIME_CFLAGS=$pkg_cv_GMIME_CFLAGS
+-	GMIME_LIBS=$pkg_cv_GMIME_LIBS
+-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+-$as_echo "yes" >&6; }
+-	have_gmime=yes GMIME=gmime-2.6
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+-   fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_var_altzone" >&5
++$as_echo "$ac_cv_var_altzone" >&6; }
++		if test "$ac_cv_var_altzone" = "yes"; then
+ 
+-   if test "x$have_gmime" = "xyes" ; then
+-      GMIME=$GMIME
++$as_echo "#define HAVE_ALTZONE 1" >>confdefs.h
+ 
+-      USEGMIME=yes
++		fi
++	else
++		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for _timezone variable" >&5
++$as_echo_n "checking for _timezone variable... " >&6; }
++if test "${ac_cv_var__timezone+set}" = set; then :
++  $as_echo_n "(cached) " >&6
++else
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
++				#include <time.h>
+ 
+-$as_echo "#define HAVE_GMIME 1" >>confdefs.h
++int
++main ()
++{
+ 
+-      pkg_modules="$pkg_modules $GMIME"
+-   else
+-      as_fn_error "libgmime is required to compile totem-pl-parser." "$LINENO" 5
+-   fi
++				_timezone = 1;
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  ac_cv_var__timezone="yes"
+ else
+-   USEGMIME=no
++  ac_cv_var__timezone="no"
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_var__timezone" >&5
++$as_echo "$ac_cv_var__timezone" >&6; }
++		if test "$ac_cv_var__timezone" = "yes"; then
++
++$as_echo "#define HAVE__TIMEZONE 1" >>confdefs.h
+ 
+-   gmime_message="
+- **************************************************************
+- Compiling totem-pl-parser without libgmime.
+- This will break podcast support and is completely unsupported.
+- **************************************************************"
++		else
++			as_fn_error "unable to find a way to determine timezone" "$LINENO" 5
++		fi
++	fi
+ fi
+ 
+ 
+diff -upr totem-pl-parser-2.28.3.old/docs/Makefile.in totem-pl-parser-2.28.3/docs/Makefile.in
+--- totem-pl-parser-2.28.3.old/docs/Makefile.in	2010-05-12 13:29:43.000000000 +0100
++++ totem-pl-parser-2.28.3/docs/Makefile.in	2010-06-01 17:15:12.000000000 +0100
+@@ -129,9 +129,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
+diff -upr totem-pl-parser-2.28.3.old/docs/reference/Makefile.in totem-pl-parser-2.28.3/docs/reference/Makefile.in
+--- totem-pl-parser-2.28.3.old/docs/reference/Makefile.in	2010-05-12 13:29:43.000000000 +0100
++++ totem-pl-parser-2.28.3/docs/reference/Makefile.in	2010-06-01 17:15:13.000000000 +0100
+@@ -98,9 +98,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
+diff -upr totem-pl-parser-2.28.3.old/lib/Makefile.in totem-pl-parser-2.28.3/lib/Makefile.in
+--- totem-pl-parser-2.28.3.old/lib/Makefile.in	2010-05-12 13:29:43.000000000 +0100
++++ totem-pl-parser-2.28.3/lib/Makefile.in	2010-06-01 17:15:13.000000000 +0100
+@@ -112,9 +112,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
+diff -upr totem-pl-parser-2.28.3.old/Makefile.in totem-pl-parser-2.28.3/Makefile.in
+--- totem-pl-parser-2.28.3.old/Makefile.in	2010-05-12 13:29:44.000000000 +0100
++++ totem-pl-parser-2.28.3/Makefile.in	2010-06-01 17:15:13.000000000 +0100
+@@ -175,9 +175,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
+diff -upr totem-pl-parser-2.28.3.old/plparse/Makefile.in totem-pl-parser-2.28.3/plparse/Makefile.in
+--- totem-pl-parser-2.28.3.old/plparse/Makefile.in	2010-05-12 13:29:44.000000000 +0100
++++ totem-pl-parser-2.28.3/plparse/Makefile.in	2010-06-01 17:15:13.000000000 +0100
+@@ -113,6 +113,7 @@ am__objects_1 = libtotem_plparser_la-tot
+ 	libtotem_plparser_la-totem-pl-parser-wm.lo \
+ 	libtotem_plparser_la-totem-pl-parser-xspf.lo
+ am_libtotem_plparser_la_OBJECTS = $(am__objects_1) \
++	libtotem_plparser_la-totem-pl-parser-decode-date.lo \
+ 	libtotem_plparser_la-xmlparser.lo \
+ 	libtotem_plparser_la-xmllexer.lo
+ libtotem_plparser_la_OBJECTS = $(am_libtotem_plparser_la_OBJECTS)
+@@ -220,9 +221,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
+@@ -387,6 +385,8 @@ libtotem_plparser_la_SOURCES = \
+ 	totem-pl-parser-builtins.h		\
+ 	totem-disc.h				\
+ 	totem-pl-parser-features.h		\
++	totem-pl-parser-decode-date.h		\
++	totem-pl-parser-decode-date.c		\
+ 	totem-pl-parser.h			\
+ 	totem-pl-parser-lines.h			\
+ 	totemplparser-marshal.h			\
+@@ -595,6 +595,7 @@ distclean-compile:
+ 
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-disc.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-pl-parser-builtins.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-pl-parser-decode-date.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-pl-parser-lines.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-pl-parser-media.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtotem_plparser_la-totem-pl-parser-misc.Plo@am__quote@
+@@ -804,6 +805,13 @@ libtotem_plparser_la-totem-pl-parser-xsp
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libtotem_plparser_la_CPPFLAGS) $(CPPFLAGS) $(libtotem_plparser_la_CFLAGS) $(CFLAGS) -c -o libtotem_plparser_la-totem-pl-parser-xspf.lo `test -f 'totem-pl-parser-xspf.c' || echo '$(srcdir)/'`totem-pl-parser-xspf.c
+ 
++libtotem_plparser_la-totem-pl-parser-decode-date.lo: totem-pl-parser-decode-date.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libtotem_plparser_la_CPPFLAGS) $(CPPFLAGS) $(libtotem_plparser_la_CFLAGS) $(CFLAGS) -MT libtotem_plparser_la-totem-pl-parser-decode-date.lo -MD -MP -MF $(DEPDIR)/libtotem_plparser_la-totem-pl-parser-decode-date.Tpo -c -o libtotem_plparser_la-totem-pl-parser-decode-date.lo `test -f 'totem-pl-parser-decode-date.c' || echo '$(srcdir)/'`totem-pl-parser-decode-date.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libtotem_plparser_la-totem-pl-parser-decode-date.Tpo $(DEPDIR)/libtotem_plparser_la-totem-pl-parser-decode-date.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='totem-pl-parser-decode-date.c' object='libtotem_plparser_la-totem-pl-parser-decode-date.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libtotem_plparser_la_CPPFLAGS) $(CPPFLAGS) $(libtotem_plparser_la_CFLAGS) $(CFLAGS) -c -o libtotem_plparser_la-totem-pl-parser-decode-date.lo `test -f 'totem-pl-parser-decode-date.c' || echo '$(srcdir)/'`totem-pl-parser-decode-date.c
++
+ libtotem_plparser_la-xmlparser.lo: xmlparser.c
+ @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libtotem_plparser_la_CPPFLAGS) $(CPPFLAGS) $(libtotem_plparser_la_CFLAGS) $(CFLAGS) -MT libtotem_plparser_la-xmlparser.lo -MD -MP -MF $(DEPDIR)/libtotem_plparser_la-xmlparser.Tpo -c -o libtotem_plparser_la-xmlparser.lo `test -f 'xmlparser.c' || echo '$(srcdir)/'`xmlparser.c
+ @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libtotem_plparser_la-xmlparser.Tpo $(DEPDIR)/libtotem_plparser_la-xmlparser.Plo
+diff -upr totem-pl-parser-2.28.3.old/plparse/tests/Makefile.in totem-pl-parser-2.28.3/plparse/tests/Makefile.in
+--- totem-pl-parser-2.28.3.old/plparse/tests/Makefile.in	2010-05-12 13:29:44.000000000 +0100
++++ totem-pl-parser-2.28.3/plparse/tests/Makefile.in	2010-06-01 17:15:13.000000000 +0100
+@@ -122,9 +122,6 @@ FGREP = @FGREP@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
+ GLIB_MKENUMS = @GLIB_MKENUMS@
+-GMIME = @GMIME@
+-GMIME_CFLAGS = @GMIME_CFLAGS@
+-GMIME_LIBS = @GMIME_LIBS@
+ GMOFILES = @GMOFILES@
+ GMSGFMT = @GMSGFMT@
+ GREP = @GREP@
